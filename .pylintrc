@@ -1,0 +1,32 @@
+[MASTER]
+# Define os módulos/pacotes ignorados pelo pylint
+ignored-modules=math,os
+
+[MESSAGES CONTROL]
+# Desabilita alguns avisos específicos
+disable=C0103,C0301
+
+# Habilita o aviso para imports não utilizados
+enable=unused-import
+
+[REPORTS]
+# Define o formato da saída do pylint
+output-format=colorized
+
+[BASIC]
+# Define nomes permitidos para variáveis locais
+good-names=i,j,k,ex,Run,_
+
+[DESIGN]
+# Configurações relacionadas a design e estrutura do código
+max-args=6
+max-attributes=10
+
+[TYPECHECK]
+# Configurações relacionadas à verificação de tipos
+generated-members=objects.*,self._*
+
+[FORMAT]
+# Configurações relacionadas ao formato e estilo do código
+max-line-length=100
+indent-string='    '
