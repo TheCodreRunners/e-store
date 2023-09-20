@@ -1,7 +1,6 @@
-
-
 from enum import StrEnum
 from db_config import database
+
 
 # Login enum
 class RoleEnum(StrEnum):
@@ -34,17 +33,22 @@ class Game(database.Model):
     image = database.Column(database.String())
     category = database.Column(database.String())
     publisher_id = database.Column(database.Integer, database.ForeignKey('Publisher.id'), nullable=True)
+    upcoming = database.Column(database.Boolean(), default=False, nullable=True)
+    created_at = database.Column(database.DateTime, default=database.func.now())
+    updated_at = database.Column(database.DateTime, default=database.func.now(), onupdate=database.func.now())
 
-    def __init__(self, name, description, price, image, category, publisher_id):
+    def __init__(self, name, description, price, image, category, publisher_id, upcoming):
         self.name = name
         self.description = description
         self.price = price
         self.image = image
         self.category = category
         self.publisher_id = publisher_id
+        self.upcoming = False
+
     def __repr__(self):
         return f'<Game {self.name}>'
-    
+
     def serialize(self):
         return {
             'id': self.id,
@@ -53,7 +57,9 @@ class Game(database.Model):
             'price': self.price,
             'image': self.image,
             'category': self.category,
-            'publisher_id': self.publisher_id
+            'publisher_id': self.publisher_id,
+            'upcoming': self.upcoming,
+            'publisher': self.publisher.serialize() if self.publisher else None
         }
 
 
@@ -70,14 +76,15 @@ class Publisher(database.Model):
         self.description = description
         self.image = image
 
-    def __repr__(self):
-        return f'<Publisher {self.name}>'
-    
     def serialize(self):
         return {
             'id': self.id,
             'name': self.name,
             'description': self.description,
             'image': self.image,
-            'games': self.games
+            # 'games': self.games
         }
+
+    def __repr__(self):
+        return f'<Publisher {self.name}>'
+

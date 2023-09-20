@@ -1,17 +1,18 @@
-from flask import Flask,Blueprint, render_template, abort,jsonify, request
+from flask import Flask, Blueprint, render_template, abort, jsonify, request
 
 from Auth.twAuth import twit_auth
 from Service.games import get_games, get_game, create_game, create_publisher, get_publishers, delete_game, \
-    delete_publisher
+    delete_publisher, update_game, get_gamescountbycategory, get_gamescountByPublisher, general_stats
 from flask import session
-
+from flask_cors import CORS, cross_origin
 import json
 
 # Blueprint Configuration
 games_blueprint = Blueprint('games', __name__)
 
 
-@games_blueprint.route('/', methods=['GET','POST',"PUT"])
+@games_blueprint.route('/', methods=['GET', 'POST', "PUT"])
+@cross_origin(origin='*')
 def hi_there():
     try:
         twich_key = twit_auth()
@@ -23,7 +24,8 @@ def hi_there():
         return json.dumps({'error': str(e)})
 
 
-@games_blueprint.route('/games', methods=['GET','POST'])
+@games_blueprint.route('/games', methods=['GET', 'POST'])
+@cross_origin(origin='*')
 def games_list():
     if request.method == 'GET':
         return get_games()
@@ -31,17 +33,40 @@ def games_list():
         return create_game(request)
 
 
-@games_blueprint.route('/games/<id>', methods=['GET','POST',"PUT","DELETE"])
+@games_blueprint.route('/games/<id>', methods=['GET', 'POST', "PUT", "DELETE"])
+@cross_origin(origin='*')
 def games(id):
     if request.method == 'GET':
         return get_game(id)
     elif request.method == 'DELETE':
         return delete_game(id)
     elif request.method == 'PUT':
-        return create_game(request)
+        return update_game(id, request)
 
 
-@games_blueprint.route('/publisher/<id>', methods=['GET','POST',"PUT","DELETE"])
+@games_blueprint.route('/gamescountbycategory', methods=['GET'])
+@cross_origin(origin='*')
+def gamescountbycategory():
+    if request.method == 'GET':
+        return get_gamescountbycategory()
+
+
+@games_blueprint.route('/gamescountbypublisher', methods=['GET'])
+@cross_origin(origin='*')
+def gamescountbypublisher():
+    if request.method == 'GET':
+        return get_gamescountByPublisher()
+
+
+@games_blueprint.route('/generalstats', methods=['GET'])
+@cross_origin(origin='*')
+def generalstats():
+    if request.method == 'GET':
+        return general_stats()
+
+
+@games_blueprint.route('/publisher/<id>', methods=['GET', 'POST', "PUT", "DELETE"])
+@cross_origin(origin='*')
 def publisher(id):
     if request.method == 'GET':
         return get_publishers()
@@ -51,4 +76,8 @@ def publisher(id):
         return delete_publisher(id)
 
 
-
+@games_blueprint.route('/publishers', methods=['GET'])
+@cross_origin(origin='*')
+def publishers():
+    if request.method == 'GET':
+        return get_publishers()
