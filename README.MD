@@ -1,7 +1,6 @@
-# IGBD FLASK APP
+# GameStore FLASK APP
 
-Esta é uma aplicação flask que consome a API do IGDB, para obter informações sobre jogos, assim gerando relatórios e 
-estatísticas sobre os jogos.
+## GameStore
 
 ## Tecnologias utilizadas
 - Flask
@@ -34,7 +33,7 @@ estatísticas sobre os jogos.
 
 ### Pré populando o banco de dados
 
-Para pré popular o banco de dados com os jogos mais populares do IGDB, execute o comando abaixo:
+Para inicializar o banco de dados execute os comandos abaixo:
 
 ```bash
     docker exec -it "Container_Name" python db init
