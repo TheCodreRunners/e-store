@@ -17,9 +17,9 @@ def login_user(username, password):
         return json.dumps({'error': str(e)})
 
 
-def register_user(username, password):
+def register_user(username, password,nickname):
     try:
-        user = UserLogin(username=username, password=password)
+        user = UserLogin(username=username, password=password,nickname=nickname)
         db.session.add(user)
         db.session.commit()
         return json.dumps({'success': True})

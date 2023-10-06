@@ -15,4 +15,4 @@ def login():
 
 @auth_blueprint.route('/register', methods=['POST'])
 def register():
-    return register_user(request.json['username'], request.json['password'])
+    return register_user(request.json['username'], request.json['password'], request.json['nickname'])

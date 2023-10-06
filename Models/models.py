@@ -18,12 +18,14 @@ class UserLogin(database.Model):
     __tablename__ = 'User'
     id = database.Column(database.Integer, primary_key=True)
     username = database.Column(database.String(120), unique=True)
+    nickname = database.Column(database.String(120), unique=False)
     password = database.Column(database.String())
     role = database.Column(database.String(), default=RoleEnum.USER.value)
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, nickname):
         self.username = username
         self.password = password
+        self.nickname = nickname
         self.role = RoleEnum.USER
 
     def __repr__(self):
