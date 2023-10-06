@@ -1,21 +1,22 @@
 from flask import Flask
 from flask import session
 from flask_migrate import Migrate
+
+from Resource.card import cards_blueprint
 from flask_session import Session
 from flask_jwt_extended import JWTManager
 
 
 # from Auth.Authenticate import auth_blueprint
-from Resource.games import games_blueprint
-
+from Resource.itens import itens_blueprint
+from Auth.auth import auth_blueprint
 import os
 
-print(os.environ.get('POSTGRES_HOST'))
 def create_app():
     app = Flask(__name__)
-
-
-    app.register_blueprint(games_blueprint)
+    app.register_blueprint(itens_blueprint)
+    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(cards_blueprint)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://flask:flask@{os.environ.get("POSTGRES_HOST")}:5432/{os.environ.get("POSTGRES_DB")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 

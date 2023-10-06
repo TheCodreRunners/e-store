@@ -19,7 +19,7 @@ services:
       - flask_network
     # command: ls -l
   db:
-    container_name: game_db
+    container_name: store_db
     image: postgres:13
     # ports:
     #   - 5432:5432
