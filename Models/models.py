@@ -14,6 +14,12 @@ class StatusEnum(StrEnum):
     REJECTED = 'REJECTED'
 
 
+class PaymentMethodEnum(StrEnum):
+    card = 'card'
+    boleto = 'boleto'
+    pix = 'pix'
+
+
 class UserLogin(database.Model):
     __tablename__ = 'User'
     id = database.Column(database.Integer, primary_key=True)
@@ -155,8 +161,8 @@ class CreditCard(database.Model):
     created_at = database.Column(database.DateTime, default=database.func.now())
 
     def __init__(self, user_id, name, address_city, address_country, address_line1, address_line1_check,
-                address_line2, address_state, address_zip, address_zip_check, country, brand, customer, exp_month,
-                exp_year, funding, last4,dynamic_last4, tokenization_method, wallet, cvc_check,fingerprint):
+                 address_line2, address_state, address_zip, address_zip_check, country, brand, customer, exp_month,
+                 exp_year, funding, last4, dynamic_last4, tokenization_method, wallet, cvc_check, fingerprint):
         self.user_id = user_id
         self.name = name
         self.address_city = address_city
@@ -203,5 +209,38 @@ class CreditCard(database.Model):
             'tokenization_method': self.tokenization_method,
             'wallet': self.wallet,
         }
+
     def __repr__(self):
         return f'<Credit_Card {self.id}>'
+
+
+class Customer(database.Model):
+    __tablename__ = 'Customer'
+    id = database.Column(database.Integer, primary_key=True)
+    user_id = database.Column(database.Integer, database.ForeignKey('User.id'), nullable=False)
+    stripe_customer_id = database.Column(database.String())
+    created_at = database.Column(database.DateTime, default=database.func.now())
+
+    def __init__(self, user_id, stripe_customer_id):
+        self.user_id = user_id
+        self.stripe_customer_id = stripe_customer_id
+
+    def __repr__(self):
+        return f'<Customer {self.id}>'
+
+
+class PaymentMethod(database.Model):
+    __tablename__ = 'Payment_Method'
+    id = database.Column(database.Integer, primary_key=True)
+    paymentMethodType = database.Column(database.String())
+    customerId = database.Column(database.ForeignKey('Customer.id'), nullable=False)
+    customer_stripe_id = database.Column(database.String())
+
+
+    def __init__(self, paymentMethodType, customerId, customer_stripe_id):
+        self.paymentMethodType = paymentMethodType
+        self.customerId = customerId
+        self.customer_stripe_id = customer_stripe_id
+
+    def __repr__(self):
+        return f'<Payment_Method {self.id}>'

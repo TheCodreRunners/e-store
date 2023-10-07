@@ -6,10 +6,11 @@ from Resource.card import cards_blueprint
 from flask_session import Session
 from flask_jwt_extended import JWTManager
 
+from Resource.customer import customer_blueprint
 
-# from Auth.Authenticate import auth_blueprint
 from Resource.itens import itens_blueprint
 from Auth.auth import auth_blueprint
+from Resource.payment_method import payment_method
 import os
 
 def create_app():
@@ -17,6 +18,8 @@ def create_app():
     app.register_blueprint(itens_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(cards_blueprint)
+    app.register_blueprint(customer_blueprint)
+    app.register_blueprint(payment_method)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://flask:flask@{os.environ.get("POSTGRES_HOST")}:5432/{os.environ.get("POSTGRES_DB")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 

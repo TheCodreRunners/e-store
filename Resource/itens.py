@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 
 from Service.itens import get_item, create_item, create_publisher, get_publishers, delete_item, \
     delete_publisher, update_item, general_stats, get_items
