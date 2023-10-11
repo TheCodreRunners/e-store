@@ -4,12 +4,11 @@ from flask_jwt_extended import jwt_required
 
 from Service.customer import create_customer, get_customers
 
-
 from flask_cors import cross_origin
-
 
 # Blueprint Configuration
 customer_blueprint = Blueprint('customer', __name__)
+
 
 @customer_blueprint.route('/customer', methods=['POST', 'GET'])
 @cross_origin(origin='*')

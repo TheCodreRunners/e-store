@@ -4,7 +4,9 @@ import sys
 from flask import jsonify
 from sqlalchemy import func
 from sqlalchemy.sql import text
-from Models.models import Item, Publisher, database as db
+
+
+from Models.models import Item, Publisher, database as db , Orders
 import stripe
 import os
 
@@ -26,7 +28,9 @@ def get_items(field="created_at", order="asc"):
         items = Item.query.order_by(text(f"{field} {order}")).all()
         if items is None:
             return json.dumps({'error': 'items not found'})
-        serialized_items = [item.serialize() for item in items]
+        # serialized_items = [item.serialize() for item in items]
+        print(items, file=sys.stderr)
+        serialized_items = items
         return json.dumps(serialized_items)
     except Exception as e:
         return json.dumps({'error': str(e)})

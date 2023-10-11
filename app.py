@@ -1,3 +1,4 @@
+from flasgger import Swagger
 from flask import Flask
 from flask import session
 from flask_migrate import Migrate
@@ -9,17 +10,20 @@ from flask_jwt_extended import JWTManager
 from Resource.customer import customer_blueprint
 
 from Resource.itens import itens_blueprint
+from Resource.orders import order_blueprint
 from Auth.auth import auth_blueprint
 from Resource.payment_method import payment_method
 import os
 
 def create_app():
     app = Flask(__name__)
+    swagger = Swagger(app)
     app.register_blueprint(itens_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(cards_blueprint)
     app.register_blueprint(customer_blueprint)
     app.register_blueprint(payment_method)
+    app.register_blueprint(order_blueprint)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://flask:flask@{os.environ.get("POSTGRES_HOST")}:5432/{os.environ.get("POSTGRES_DB")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 

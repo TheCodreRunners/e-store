@@ -1,4 +1,7 @@
 from enum import StrEnum
+
+from sqlalchemy.orm import backref
+
 from db_config import database
 
 
@@ -38,18 +41,29 @@ class UserLogin(database.Model):
         return f'<UserLogin {self.username}>'
 
 
+order_item = database.Table('order_item',
+                            database.Column('order_id', database.Integer, database.ForeignKey('orders.id'),
+                                            primary_key=True),
+                            database.Column('item_id', database.Integer, database.ForeignKey('items.id'),
+                                            primary_key=True),
+
+                            database.Column('quantity', database.Integer, default=1),
+                            database.Column('price', database.Float(), default=0),
+                            )
+
+
 class Item(database.Model):
-    __tablename__ = 'Item'
+    __tablename__ = 'items'
     id = database.Column(database.Integer, primary_key=True)
     name = database.Column(database.String(120), unique=True)
     description = database.Column(database.String())
     price = database.Column(database.Float())
     image = database.Column(database.String())
     category = database.Column(database.String())
-    # publisher_id = database.Column(database.Integer, database.ForeignKey('Publisher.id'), nullable=True)
     upcoming = database.Column(database.Boolean(), default=False, nullable=True)
     created_at = database.Column(database.DateTime, default=database.func.now())
     updated_at = database.Column(database.DateTime, default=database.func.now(), onupdate=database.func.now())
+    order = database.relationship('Order', secondary=order_item, lazy='subquery', back_populates="items")
 
     def __init__(self, name, description, price, image, category, upcoming):
         self.name = name
@@ -61,7 +75,7 @@ class Item(database.Model):
         self.upcoming = upcoming
 
     def __repr__(self):
-        return f'<Item {self.name}>'
+        return f'<items {self.name}>'
 
     def serialize(self):
         return {
@@ -73,53 +87,52 @@ class Item(database.Model):
             'category': self.category,
             # 'publisher_id': self.publisher_id,
             'upcoming': self.upcoming,
+
+            'created_at': self.created_at,
             # 'publisher': self.publisher.serialize() if self.publisher else None
         }
 
 
-class Publisher(database.Model):
-    __tablename__ = 'Publisher'
+class Orders(database.Model):
+    __tablename__ = 'orders'
     id = database.Column(database.Integer, primary_key=True)
-    name = database.Column(database.String(120), unique=True)
-    description = database.Column(database.String())
-    image = database.Column(database.String())
+    customer_id = database.Column(database.Integer, database.ForeignKey('Customer.id'), nullable=False)
+    # item_id = database.Column(database.Integer, database.ForeignKey('Item.id'), nullable=False)
+    item = database.relationship('Item', secondary=order_item, lazy='subquery',
+                                 backref='orders'
 
-    def __init__(self, name, description, image):
-        self.name = name
-        self.description = description
-        self.image = image
+                                 )
+    status = database.Column(database.String(), default=StatusEnum.PENDING.value)
+    created_at = database.Column(database.DateTime, default=database.func.now())
+
+    def __init__(self, customer_id, status, item=None):
+        if item is None:
+            item = []
+        self.customer_id = customer_id
+        self.status = status
+        self.item = item
 
     def serialize(self):
         return {
             'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
+            'customer_id': self.customer_id,
+            # 'item_id': self.item_id,
+            # 'customer': self.customer.serialize() if self.customer else None,
+            'item': [item.serialize() for item in self.item] if self.item else None,
+            'status': self.status,
+
         }
 
     def __repr__(self):
-        return f'<Publisher {self.name}>'
+        return f'<orders {self.id}>'
 
 
-class Orders(database.Model):
-    __tablename__ = 'Orders'
-    id = database.Column(database.Integer, primary_key=True)
-    user_id = database.Column(database.Integer, database.ForeignKey('User.id'), nullable=False)
-    item_id = database.Column(database.Integer, database.ForeignKey('Item.id'), nullable=False)
-    created_at = database.Column(database.DateTime, default=database.func.now())
-
-    def __init__(self, user_id, item_id):
-        self.user_id = user_id
-        self.game_id = item_id
-
-    def __repr__(self):
-        return f'<Orders {self.id}>'
 
 
 class Prices(database.Model):
     __tablename__ = 'Prices'
     id = database.Column(database.Integer, primary_key=True)
-    item_id = database.Column(database.Integer, database.ForeignKey('Item.id'), nullable=True)
+    item_id = database.Column(database.Integer, database.ForeignKey('items.id'), nullable=True)
     price = database.Column(database.Float())
     created_at = database.Column(database.DateTime, default=database.func.now())
 
@@ -225,6 +238,13 @@ class Customer(database.Model):
         self.user_id = user_id
         self.stripe_customer_id = stripe_customer_id
 
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'stripe_customer_id': self.stripe_customer_id,
+        }
+
     def __repr__(self):
         return f'<Customer {self.id}>'
 
@@ -236,7 +256,6 @@ class PaymentMethod(database.Model):
     customerId = database.Column(database.ForeignKey('Customer.id'), nullable=False)
     customer_stripe_id = database.Column(database.String())
 
-
     def __init__(self, paymentMethodType, customerId, customer_stripe_id):
         self.paymentMethodType = paymentMethodType
         self.customerId = customerId
@@ -244,3 +263,26 @@ class PaymentMethod(database.Model):
 
     def __repr__(self):
         return f'<Payment_Method {self.id}>'
+
+class Publisher(database.Model):
+    __tablename__ = 'Publisher'
+    id = database.Column(database.Integer, primary_key=True)
+    name = database.Column(database.String(120), unique=True)
+    description = database.Column(database.String())
+    image = database.Column(database.String())
+
+    def __init__(self, name, description, image):
+        self.name = name
+        self.description = description
+        self.image = image
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+        }
+
+    def __repr__(self):
+        return f'<Publisher {self.name}>'

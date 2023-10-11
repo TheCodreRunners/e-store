@@ -13,6 +13,7 @@ itens_blueprint = Blueprint('itens', __name__)
 
 @itens_blueprint.route('/', methods=['GET', 'POST', "PUT"])
 @cross_origin(origin='*')
+@jwt_required()
 def hi_there():
     try:
         return 'twich_key'
