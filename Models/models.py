@@ -1,7 +1,5 @@
 from enum import StrEnum
 
-from sqlalchemy.orm import backref
-
 from db_config import database
 
 
@@ -41,29 +39,18 @@ class UserLogin(database.Model):
         return f'<UserLogin {self.username}>'
 
 
-order_item = database.Table('order_item',
-                            database.Column('order_id', database.Integer, database.ForeignKey('orders.id'),
-                                            primary_key=True),
-                            database.Column('item_id', database.Integer, database.ForeignKey('items.id'),
-                                            primary_key=True),
-
-                            database.Column('quantity', database.Integer, default=1),
-                            database.Column('price', database.Float(), default=0),
-                            )
-
-
 class Item(database.Model):
     __tablename__ = 'items'
     id = database.Column(database.Integer, primary_key=True)
-    name = database.Column(database.String(120), unique=True)
+    name = database.Column(database.String(120))
     description = database.Column(database.String())
     price = database.Column(database.Float())
+    stripe_price_id = database.Column(database.String())
     image = database.Column(database.String())
     category = database.Column(database.String())
     upcoming = database.Column(database.Boolean(), default=False, nullable=True)
     created_at = database.Column(database.DateTime, default=database.func.now())
     updated_at = database.Column(database.DateTime, default=database.func.now(), onupdate=database.func.now())
-    order = database.relationship('Order', secondary=order_item, lazy='subquery', back_populates="items")
 
     def __init__(self, name, description, price, image, category, upcoming):
         self.name = name
@@ -71,37 +58,36 @@ class Item(database.Model):
         self.price = price
         self.image = image
         self.category = category
-        # self.publisher_id = publisher_id
         self.upcoming = upcoming
 
     def __repr__(self):
         return f'<items {self.name}>'
 
     def serialize(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'price': self.price,
-            'image': self.image,
-            'category': self.category,
-            # 'publisher_id': self.publisher_id,
-            'upcoming': self.upcoming,
+        return {'id': self.id, 'name': self.name, 'description': self.description, 'price': self.price,
+            'image': self.image, 'category': self.category, 'upcoming': self.upcoming,
+            'created_at': str(self.created_at),
 
-            'created_at': self.created_at,
-            # 'publisher': self.publisher.serialize() if self.publisher else None
         }
+
+
+class OrderDetail(database.Model):
+    __tablename__ = 'order_detail'
+    order_id = database.Column(database.Integer, database.ForeignKey('orders.id'), primary_key=True)
+    item_id = database.Column(database.Integer, database.ForeignKey('items.id'), primary_key=True)
+    quantity = database.Column(database.Integer, nullable=False)
+    item = database.relationship('Item')
+
+    def serialize(self):
+        return {'order_id': self.order_id, 'item_id': self.item_id, 'quantity': self.quantity,
+            'item': self.item.serialize() if self.item else None, }
 
 
 class Orders(database.Model):
     __tablename__ = 'orders'
     id = database.Column(database.Integer, primary_key=True)
     customer_id = database.Column(database.Integer, database.ForeignKey('Customer.id'), nullable=False)
-    # item_id = database.Column(database.Integer, database.ForeignKey('Item.id'), nullable=False)
-    item = database.relationship('Item', secondary=order_item, lazy='subquery',
-                                 backref='orders'
-
-                                 )
+    order_detail = database.relationship('OrderDetail')
     status = database.Column(database.String(), default=StatusEnum.PENDING.value)
     created_at = database.Column(database.DateTime, default=database.func.now())
 
@@ -113,20 +99,14 @@ class Orders(database.Model):
         self.item = item
 
     def serialize(self):
-        return {
-            'id': self.id,
-            'customer_id': self.customer_id,
-            # 'item_id': self.item_id,
-            # 'customer': self.customer.serialize() if self.customer else None,
-            'item': [item.serialize() for item in self.item] if self.item else None,
-            'status': self.status,
+        return {'id': self.id, 'customer_id': self.customer_id,
+            'order_detail': [order_detail.serialize() for order_detail in
+                             self.order_detail] if self.order_detail else None, 'status': self.status,
 
         }
 
     def __repr__(self):
         return f'<orders {self.id}>'
-
-
 
 
 class Prices(database.Model):
@@ -147,9 +127,7 @@ class Prices(database.Model):
 class CreditCard(database.Model):
     __tablename__ = 'Credit_Card'
     id = database.Column(database.Integer, primary_key=True)
-    user_id = database.Column(database.Integer, database.ForeignKey('User.id'), nullable=False)
-    # card_number = database.Column(database.String())
-    # Cardholder name
+    customer_id = database.Column(database.Integer, database.ForeignKey('Customer.id'), nullable=False)
     name = database.Column(database.String())
     cvc_check = database.Column(database.String())
     address_city = database.Column(database.String())
@@ -173,9 +151,9 @@ class CreditCard(database.Model):
     wallet = database.Column(database.String())
     created_at = database.Column(database.DateTime, default=database.func.now())
 
-    def __init__(self, user_id, name, address_city, address_country, address_line1, address_line1_check,
-                 address_line2, address_state, address_zip, address_zip_check, country, brand, customer, exp_month,
-                 exp_year, funding, last4, dynamic_last4, tokenization_method, wallet, cvc_check, fingerprint):
+    def __init__(self, user_id, name, address_city, address_country, address_line1, address_line1_check, address_line2,
+                 address_state, address_zip, address_zip_check, country, brand, customer, exp_month, exp_year, funding,
+                 last4, dynamic_last4, tokenization_method, wallet, cvc_check, fingerprint):
         self.user_id = user_id
         self.name = name
         self.address_city = address_city
@@ -200,28 +178,13 @@ class CreditCard(database.Model):
         self.wallet = wallet
 
     def serialize(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'name': self.name,
-            'address_city': self.address_city,
-            'address_country': self.address_country,
-            'address_line1': self.address_line1,
-            'address_line1_check': self.address_line1_check,
-            'address_line2': self.address_line2,
-            'address_state': self.address_state,
-            'address_zip': self.address_zip,
-            'address_zip_check': self.address_zip_check,
-            'country': self.country,
-            'brand': self.brand,
-            'customer': self.customer,
-            'exp_month': self.exp_month,
-            'exp_year': self.exp_year,
-            'funding': self.funding,
-            'last4': self.last4,
-            'tokenization_method': self.tokenization_method,
-            'wallet': self.wallet,
-        }
+        return {'id': self.id, 'user_id': self.user_id, 'name': self.name, 'address_city': self.address_city,
+            'address_country': self.address_country, 'address_line1': self.address_line1,
+            'address_line1_check': self.address_line1_check, 'address_line2': self.address_line2,
+            'address_state': self.address_state, 'address_zip': self.address_zip,
+            'address_zip_check': self.address_zip_check, 'country': self.country, 'brand': self.brand,
+            'customer': self.customer, 'exp_month': self.exp_month, 'exp_year': self.exp_year, 'funding': self.funding,
+            'last4': self.last4, 'tokenization_method': self.tokenization_method, 'wallet': self.wallet, }
 
     def __repr__(self):
         return f'<Credit_Card {self.id}>'
@@ -239,11 +202,7 @@ class Customer(database.Model):
         self.stripe_customer_id = stripe_customer_id
 
     def serialize(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'stripe_customer_id': self.stripe_customer_id,
-        }
+        return {'id': self.id, 'user_id': self.user_id, 'stripe_customer_id': self.stripe_customer_id, }
 
     def __repr__(self):
         return f'<Customer {self.id}>'
@@ -264,6 +223,7 @@ class PaymentMethod(database.Model):
     def __repr__(self):
         return f'<Payment_Method {self.id}>'
 
+
 class Publisher(database.Model):
     __tablename__ = 'Publisher'
     id = database.Column(database.Integer, primary_key=True)
@@ -277,12 +237,7 @@ class Publisher(database.Model):
         self.image = image
 
     def serialize(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'image': self.image,
-        }
+        return {'id': self.id, 'name': self.name, 'description': self.description, 'image': self.image, }
 
     def __repr__(self):
         return f'<Publisher {self.name}>'

@@ -20,6 +20,7 @@ def create_card(request):
                           customer=res.customer, exp_month=res.exp_month, exp_year=res.exp_year, funding=res.funding,
                           last4=res.last4, dynamic_last4=res.dynamic_last4, tokenization_method=res.tokenization_method,
                           wallet=res.wallet, cvc_check=res.cvc_check, fingerprint=res.fingerprint)
+        card.customer_id = client.id
         db.session.add(card)
         db.session.commit()
         return json.dumps(res)

@@ -27,7 +27,7 @@ jsonpickle==2.0.0
 flask-cors==4.0.0
 Flask-RESTful==0.3.10
 stripe==6.7.0
-
+SQLAlchemy-serializer==1.4.1
 
 
 
