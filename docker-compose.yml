@@ -1,8 +1,10 @@
 version: '3.8'
 services:
   web:
+    env_file:
+      - .env
     restart: always
-    container_name: game_api
+    container_name: e-store
     build:
       context: .
       target: development
@@ -28,9 +30,9 @@ services:
     expose:
      - 5435
     environment:
-      POSTGRES_DB: flask
-      POSTGRES_USER: flask
-      POSTGRES_PASSWORD: flask
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PG_DATA: /var/lib/postgresql/data
     ports:
       - 127.0.0.1:5435:5432

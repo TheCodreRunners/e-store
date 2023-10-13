@@ -17,20 +17,25 @@ import os
 
 def create_app():
     app = Flask(__name__)
+
     swagger = Swagger(app)
+
     app.register_blueprint(itens_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(cards_blueprint)
     app.register_blueprint(customer_blueprint)
     app.register_blueprint(payment_method)
     app.register_blueprint(order_blueprint)
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://flask:flask@{os.environ.get("POSTGRES_HOST")}:5432/{os.environ.get("POSTGRES_DB")}'
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.environ.get("POSTGRES_USER")}:{os.environ.get("POSTGRES_PASSWORD")}@{os.environ.get("POSTGRES_HOST")}:5432/{os.environ.get("POSTGRES_DB")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-    app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')  # Change this!
+    app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
+
     jwt = JWTManager(app)
 
     from Models.models import database as db
+
     db.init_app(app)
     migrate = Migrate(app, db)
     # Configuring the database
@@ -42,9 +47,5 @@ def create_app():
     return app
 
 if __name__ == "__main__":
-    print('Creating app...')
-    print('aq' +os.environ.get('POSTGRES_HOST'))
-    print('Creating app...')
-
     app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5000)
