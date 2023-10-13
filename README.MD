@@ -1,25 +1,24 @@
-# GameStore FLASK APP
+# Ecommerce FLASK APP
 
-## GameStore
 
 ## Tecnologias utilizadas
 - Flask
 - Docker
 - Python
 - SQLAlchemy
+- Stripe
 
 ## Pré-requisitos
 
 - Docker: [Instalação do Docker](https://docs.docker.com/get-docker/)
-- Conta no IGDB para obter a chave da API: [IGDB Developer](https://www.igdb.com/api)
-- Conta no Twitch para obter a chave da API: [Twitch Developer](https://dev.twitch.tv/console/apps/create)
+- Conta no Stripe: [Stripe](https://stripe.com/br)
 
 
 ## Configuração
 
 1. Clone este repositório:
 
-2. Configure o arquivo .env com as chaves da API do IGDB e Twitch:
+2. Configure o arquivo .env com as chaves da API do Stripe:
 
 3. Execute o comando para criar a imagem do docker:
 
