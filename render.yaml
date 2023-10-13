@@ -1,0 +1,46 @@
+services:
+  - name: web
+    env:
+      - .env
+    start_command: ./start.sh
+    working_dir: /app
+    volumes:
+      - type: BIND
+        source: .
+        destination: /app
+    ports:
+      - 5000
+    envVars:
+      - key: DATABASE_URL
+        value: postgres://postgres_user:password@db/postgres_db
+    depends_on:
+      - db
+    networks:
+      - flask_network
+
+  - name: db
+    image: postgres:13
+    start_command: docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf
+    volumes:
+      - type: VOLUME
+        name: postgres_data
+        mountPath: /var/lib/postgresql/data
+    ports:
+      - 5432
+    envVars:
+      - key: POSTGRES_DB
+        value: ${POSTGRES_DB}
+      - key: POSTGRES_USER
+        value: ${POSTGRES_USER}
+      - key: POSTGRES_PASSWORD
+        value: ${POSTGRES_PASSWORD}
+      - key: PG_DATA
+        value: /var/lib/postgresql/data
+    networks:
+      - flask_network
+
+networks:
+  - name: flask_network
+
+volumes:
+  - name: postgres_data
