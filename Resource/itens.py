@@ -1,7 +1,8 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 
-from Service.itens import get_item, create_item, create_publisher, get_publishers, delete_item, \
-    delete_publisher, update_item, general_stats, get_items
+from Service.itens import get_item, create_item, get_publishers, delete_item, \
+     update_item, get_items
 
 from flask_cors import cross_origin
 import json
@@ -12,6 +13,7 @@ itens_blueprint = Blueprint('itens', __name__)
 
 @itens_blueprint.route('/', methods=['GET', 'POST', "PUT"])
 @cross_origin(origin='*')
+@jwt_required()
 def hi_there():
     try:
         return 'twich_key'
@@ -38,29 +40,3 @@ def games(id):
     elif request.method == 'PUT':
         return update_item(id, request)
 
-
-@itens_blueprint.route('/generalstats', methods=['GET'])
-@cross_origin(origin='*')
-def generalstats():
-    if request.method == 'GET':
-        return general_stats()
-
-
-@itens_blueprint.route('/publisher/<id>', methods=['GET', "PUT", "DELETE"])
-@cross_origin(origin='*')
-def publisher(id):
-    if request.method == 'GET':
-        return get_publishers()
-    elif request.method == 'POST':
-        return create_publisher(request)
-    elif request.method == 'DELETE':
-        return delete_publisher(id)
-
-
-@itens_blueprint.route('/publishers', methods=['GET', 'POST'])
-@cross_origin(origin='*')
-def publishers():
-    if request.method == 'GET':
-        return get_publishers()
-    if request.method == 'POST':
-        return create_publisher(request)
