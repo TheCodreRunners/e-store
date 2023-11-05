@@ -24,7 +24,7 @@ def serialize_any(obj):
 # items
 def get_items(field="created_at", order="asc"):
     try:
-        items = Item.query.order_by(text(f"{field} {order}")).paginate(per_page=1, max_per_page=1)
+        items = Item.query.order_by(text(f"{field} {order}")).paginate(per_page=10, max_per_page=10)
         if items is None:
             return json.dumps({'error': 'items not found'})
 

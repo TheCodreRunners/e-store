@@ -11,7 +11,10 @@ def create_customer(request):
         data = request.get_json()
         userId = data['user_id']
         user = UserLogin.query.filter_by(id=userId).first()
-        res = stripe.Customer.create(email=user.username, name=user.nickname)
+
+        res = stripe.Customer.create(
+        email=user.username, name=user.nickname,
+        help="Needed to identify the customer on stripe")
         customer = Customer(user_id=userId, stripe_customer_id=res.id)
         db.session.add(customer)
         db.session.commit()

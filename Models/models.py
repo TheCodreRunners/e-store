@@ -1,6 +1,7 @@
 from enum import StrEnum
 
 from db_config import database
+from dataclasses import dataclass
 
 
 # Login enum
@@ -28,6 +29,7 @@ class UserLogin(database.Model):
     nickname = database.Column(database.String(120), unique=False)
     password = database.Column(database.String())
     role = database.Column(database.String(), default=RoleEnum.USER.value)
+    comments = database.relationship('CommentsEval')
 
     def __init__(self, username, password, nickname):
         self.username = username
@@ -38,7 +40,11 @@ class UserLogin(database.Model):
     def __repr__(self):
         return f'<UserLogin {self.username}>'
 
+    def serialize(self):
+        return {'id': self.id, 'username': self.username, 'nickname': self.nickname, 'role': self.role,
+          }
 
+@dataclass
 class Item(database.Model):
     __tablename__ = 'items'
     id = database.Column(database.Integer, primary_key=True)
@@ -48,25 +54,17 @@ class Item(database.Model):
     stripe_price_id = database.Column(database.String())
     image = database.Column(database.String())
     category = database.Column(database.String())
+    comments = database.relationship('CommentsEval')
     upcoming = database.Column(database.Boolean(), default=False, nullable=True)
     created_at = database.Column(database.DateTime, default=database.func.now())
     updated_at = database.Column(database.DateTime, default=database.func.now(), onupdate=database.func.now())
-
-    def __init__(self, name, description, price, image, category, upcoming):
-        self.name = name
-        self.description = description
-        self.price = price
-        self.image = image
-        self.category = category
-        self.upcoming = upcoming
-
     def __repr__(self):
         return f'<items {self.name}>'
 
     def serialize(self):
         return {'id': self.id, 'name': self.name, 'description': self.description, 'price': self.price,
             'image': self.image, 'category': self.category, 'upcoming': self.upcoming,
-            'created_at': str(self.created_at),
+            'created_at': str(self.created_at),'comments': [comment.serialize() for comment in self.comments] if self.comments else None,
 
         }
 
@@ -108,6 +106,21 @@ class Orders(database.Model):
     def __repr__(self):
         return f'<orders {self.id}>'
 
+@dataclass
+class CommentsEval(database.Model):
+    __tablename__ = 'comments'
+    id = database.Column(database.Integer, primary_key=True)
+    user_id = database.Column(database.Integer, database.ForeignKey('User.id'), nullable=False)
+    item_id = database.Column(database.Integer, database.ForeignKey('items.id'), nullable=False)
+    comment = database.Column(database.String())
+    rating = database.Column(database.Integer())
+    created_at = database.Column(database.DateTime, default=database.func.now())
+
+    def serialize(self):
+        return {'id': self.id, 'user_id': self.user_id, 'item_id': self.item_id, 'comment': self.comment,
+            'rating': self.rating, 'created_at': str(self.created_at),
+
+        }
 
 class Prices(database.Model):
     __tablename__ = 'Prices'

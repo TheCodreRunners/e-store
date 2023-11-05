@@ -4,6 +4,7 @@ from flask import session
 from flask_migrate import Migrate
 
 from Resource.card import cards_blueprint
+from Resource.comments import comments_blueprint
 from flask_session import Session
 from flask_jwt_extended import JWTManager
 
@@ -26,7 +27,7 @@ def create_app():
     app.register_blueprint(customer_blueprint)
     app.register_blueprint(payment_method)
     app.register_blueprint(order_blueprint)
-
+    app.register_blueprint(comments_blueprint)
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.environ.get("POSTGRES_USER")}:{os.environ.get("POSTGRES_PASSWORD")}@{os.environ.get("POSTGRES_HOST")}:5432/{os.environ.get("POSTGRES_DB")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 

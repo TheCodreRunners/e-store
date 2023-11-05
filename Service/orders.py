@@ -1,5 +1,5 @@
 import json
-import sys
+
 
 import stripe
 
@@ -48,6 +48,7 @@ def create_orders(request):
 
         stripe.checkout.Session.create(line_items=line_items,payment_method_types=['card'], mode="payment",  success_url="https://example.com/success",
 )
+        # @classmethod
 
         db.session.add(order)
         db.session.commit()

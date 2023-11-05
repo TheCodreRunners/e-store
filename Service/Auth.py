@@ -1,8 +1,9 @@
 import json
+import sys
 
 from Models.models import UserLogin, database as db
 from flask_jwt_extended import create_access_token
-
+from flask_jwt_extended import JWTManager
 
 def login_user(username, password):
     try:
